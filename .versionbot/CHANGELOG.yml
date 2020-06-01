@@ -1,4 +1,23 @@
 - commits:
+    - subject: Migrate to per-service apiSecrets
+      hash: 7f2cf44a4e3e655877238856520aa40513ae047e
+      body: |
+        We have a api key per service, and one more key which has all
+        permissions (used for the cloud). When a key is used for the
+        supervisor api, we pull in the scopes for endpoints to respect
+        as part of their normal operation.
+
+        The scopes currently supported are `app` and `all-apps` but this
+        will soon be extended.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Cameron Diver <cameron@balena.io>
+        signed-off-by: Cameron Diver <cameron@balena.io>
+      author: Cameron Diver
+  version: 11.6.0
+  date: 2020-06-01T13:19:37.239Z
+- commits:
     - subject: Remove unused dependencies and dedupe
       hash: 6290993a79aa2231ac19bbe80a72af72cd8ae72e
       body: ''
