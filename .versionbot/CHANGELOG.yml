@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'fix: Pin python version in Dockerfile'
+      hash: 275b112df763887fc08f07445b7a5e93ba7b5228
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Rich Bayliss <rich@balena.io>
+        signed-off-by: Rich Bayliss <rich@balena.io>
+      author: Rich Bayliss
+  version: 11.6.1
+  date: 2020-06-05T15:34:07.423Z
+- commits:
     - subject: Isolate target state fetching to its own module which emits on update
       hash: 17a5d8dd4918916c954990cfb9666754434ef527
       body: ''
