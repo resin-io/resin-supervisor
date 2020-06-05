@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'fix: Pin alpine python version'
+      hash: 846545648bdc98392da7972558390f1ea26bfd24
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Rich Bayliss <rich@balena.io>
+        signed-off-by: Rich Bayliss <rich@balena.io>
+      author: Rich Bayliss
+  version: 11.6.1
+  date: 2020-06-05T15:40:59.811Z
+- commits:
     - subject: Isolate target state fetching to its own module which emits on update
       hash: 17a5d8dd4918916c954990cfb9666754434ef527
       body: ''
