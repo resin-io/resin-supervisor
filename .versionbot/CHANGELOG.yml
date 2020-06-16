@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add supervisor upgrade document
+      hash: 989ec83a27621cab6c53dd026c2407dfe1b1b179
+      body: ''
+      footer:
+        Connects-to: 'https://github.com/balena-io/balena-io/issues/2157'
+        connects-to: 'https://github.com/balena-io/balena-io/issues/2157'
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Hugh Brown <hugh@balena.io>
+        signed-off-by: Hugh Brown <hugh@balena.io>
+      author: Hugh Brown
+  version: 11.8.2
+  date: 2020-06-16T20:07:23.012Z
+- commits:
     - subject: Update webpack dependencies
       hash: e1fb8683f4687aa0844bf73780916db34e3ebd3d
       body: ''
