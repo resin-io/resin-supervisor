@@ -1,4 +1,17 @@
 - commits:
+    - subject: Log more debug info when network change is detected
+      hash: d9bfad22c9125ee2380fe8b420e39034263139a5
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Miguel Casqueira <miguel@balena.io>
+        signed-off-by: Miguel Casqueira <miguel@balena.io>
+      author: Miguel Casqueira
+      nested: []
+  version: 11.14.8
+  date: 2020-09-29T01:22:05.867Z
+- commits:
     - subject: Correctly evaluate if scheduledApply.delay is not set
       hash: 90981a00bed100e1496dc71bf0631bc0ab04ffa7
       body: ''
