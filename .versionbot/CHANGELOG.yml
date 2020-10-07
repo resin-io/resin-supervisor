@@ -1,4 +1,19 @@
 - commits:
+    - subject: >-
+        Add the 'io.balena.features.early-run' label to bind mount the early
+        /run folder
+      hash: 34b1cde092d59c25a9c705e8999676f7e028409a
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Tomás Tormo <tomast@balena.io>
+        signed-off-by: Tomás Tormo <tomast@balena.io>
+      author: Tomás Tormo
+      nested: []
+  version: 12.1.0
+  date: 2020-10-07T13:37:51.340Z
+- commits:
     - subject: 'version: drop SUPERVISOR_VERSION env var'
       hash: 8e65466f2d8540918b1fa8d8af88d0c21fcbf7f8
       body: >
