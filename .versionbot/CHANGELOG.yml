@@ -1,4 +1,16 @@
 - commits:
+    - subject: Populate config.json from EC2 metadata
+      hash: e9c6f6ffb37ad37303cb37a2fd8a3a6c7ac7a6eb
+      body: |
+        * Hackathon 2k20 project
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: ab77
+      nested: []
+  version: 12.0.1
+  date: 2020-10-07T21:01:50.765Z
+- commits:
     - subject: 'version: drop SUPERVISOR_VERSION env var'
       hash: 8e65466f2d8540918b1fa8d8af88d0c21fcbf7f8
       body: >
