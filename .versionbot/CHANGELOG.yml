@@ -1,4 +1,37 @@
 - commits:
+    - subject: Added /v2/services/events to return processed docker logs
+      hash: f0a11ef62d14f2fde083a2d8c0adc75798ade798
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Miguel Casqueira <miguel@balena.io>
+        signed-off-by: Miguel Casqueira <miguel@balena.io>
+      author: Miguel Casqueira
+      nested: []
+    - subject: Add `docker` log level
+      hash: 2cade49a84852e289732971f13448c4f2eed9da3
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thomas Manning <thomasm@balena.io>
+        signed-off-by: Thomas Manning <thomasm@balena.io>
+      author: Thomas Manning
+      nested: []
+    - subject: Add LogBuffer for events route
+      hash: f01e1aac1f1d161ff9ba8763850b36c30bcb9028
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thomas Manning <thomasm@balena.io>
+        signed-off-by: Thomas Manning <thomasm@balena.io>
+      author: Thomas Manning
+      nested: []
+  version: 12.1.0
+  date: 2020-10-09T00:37:21.497Z
+- commits:
     - subject: 'version: drop SUPERVISOR_VERSION env var'
       hash: 8e65466f2d8540918b1fa8d8af88d0c21fcbf7f8
       body: >
