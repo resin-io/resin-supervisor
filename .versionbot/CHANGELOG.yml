@@ -1,4 +1,19 @@
 - commits:
+    - subject: Prevent getting stuck in loop when trying to apply target state
+      hash: 15f0b0c1cc2689a51c6b3d62b64755611d44901b
+      body: ''
+      footer:
+        Closes: '#1476'
+        closes: '#1476'
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Miguel Casqueira <miguel@balena.io>
+        signed-off-by: Miguel Casqueira <miguel@balena.io>
+      author: Miguel Casqueira
+      nested: []
+  version: 12.0.8
+  date: 2020-10-22T01:09:11.514Z
+- commits:
     - subject: Improved log message when networks do not match
       hash: edf23871d9a057b9bae8837f3ee39d7401247514
       body: ''
