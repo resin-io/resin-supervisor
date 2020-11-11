@@ -1,4 +1,19 @@
 - commits:
+    - subject: Patched scoped api keys to allow current CLI to use livepush
+      hash: cb6110ceed8997ac360f2c24a64a0e45cc5803c9
+      body: ''
+      footer:
+        Closes: '#1512'
+        closes: '#1512'
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Miguel Casqueira <miguel@balena.io>
+        signed-off-by: Miguel Casqueira <miguel@balena.io>
+      author: Miguel Casqueira
+      nested: []
+  version: 12.2.1
+  date: 2020-11-11T00:41:00.939Z
+- commits:
     - subject: Allow storing commits against their appIds
       hash: f08316dc57aaf15300f7810bc700345534a3368b
       body: |
