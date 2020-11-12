@@ -33,6 +33,7 @@ export interface Image {
 	// image registry/repo@digest or registry/repo:tag
 	name: string;
 	appId: number;
+	appUuid?: string;
 	serviceId: number;
 	serviceName: string;
 	// Id from balena api
@@ -90,13 +91,20 @@ export const initialized = (async () => {
 
 type ServiceInfo = Pick<
 	Service,
-	'imageName' | 'appId' | 'serviceId' | 'serviceName' | 'imageId' | 'releaseId'
+	| 'imageName'
+	| 'appId'
+	| 'serviceId'
+	| 'serviceName'
+	| 'imageId'
+	| 'releaseId'
+	| 'uuid'
 >;
 export function imageFromService(service: ServiceInfo): Image {
 	// We know these fields are defined because we create these images from target state
 	return {
 		name: service.imageName!,
 		appId: service.appId,
+		appUuid: service.uuid!,
 		serviceId: service.serviceId!,
 		serviceName: service.serviceName!,
 		imageId: service.imageId!,

@@ -33,6 +33,8 @@ export interface AppConstructOpts {
 	commit?: string;
 	releaseId?: number;
 	source?: string;
+	uuid?: string;
+	type: string;
 
 	services: Service[];
 	volumes: Dictionary<Volume>;
@@ -58,6 +60,8 @@ export class App {
 	public commit?: string;
 	public releaseId?: number;
 	public source?: string;
+	public uuid?: string;
+	public type: string;
 
 	// Services are stored as an array, as at any one time we could have more than one
 	// service for a single service ID running (for example handover)
@@ -74,12 +78,16 @@ export class App {
 		this.services = opts.services;
 		this.volumes = opts.volumes;
 		this.networks = opts.networks;
+		this.uuid = opts.uuid;
+		this.type = opts.type;
 
 		if (this.networks.default == null && isTargetState) {
 			// We always want a default network
 			this.networks.default = Network.fromComposeObject(
 				'default',
 				opts.appId,
+				// Target state always has a uuid set
+				opts.uuid!,
 				{},
 			);
 		}
@@ -751,13 +759,13 @@ export class App {
 			if (conf.labels == null) {
 				conf.labels = {};
 			}
-			return Volume.fromComposeObject(name, app.appId, conf);
+			return Volume.fromComposeObject(name, app.appId, app.uuid, conf);
 		});
 
 		const networks = _.mapValues(
 			JSON.parse(app.networks) ?? {},
 			(conf, name) => {
-				return Network.fromComposeObject(name, app.appId, conf ?? {});
+				return Network.fromComposeObject(name, app.appId, app.uuid, conf ?? {});
 			},
 		);
 
@@ -828,6 +836,8 @@ export class App {
 				releaseId: app.releaseId,
 				appName: app.name,
 				source: app.source,
+				uuid: app.uuid,
+				type: app.type,
 				services,
 				volumes,
 				networks,

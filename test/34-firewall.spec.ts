@@ -6,6 +6,7 @@ import { docker } from '../src/lib/docker-utils';
 import * as sinon from 'sinon';
 
 import * as config from '../src/config';
+import * as db from '../src/db';
 import * as firewall from '../src/lib/firewall';
 import * as logger from '../src/logger';
 import * as iptablesMock from './lib/mocked-iptables';
@@ -39,6 +40,9 @@ describe('Host Firewall', function () {
 				return {};
 			},
 		} as Docker.Image);
+
+		await db.initialized;
+		await db.models('app').del();
 
 		await targetStateCache.initialized;
 		await firewall.initialised;
@@ -161,6 +165,8 @@ describe('Host Firewall', function () {
 					await targetStateCache.setTargetApps([
 						{
 							appId: 2,
+							uuid: 'test-uuid',
+							type: 'supervised',
 							commit: 'abcdef2',
 							name: 'test-app2',
 							source: apiEndpoint,
@@ -213,6 +219,8 @@ describe('Host Firewall', function () {
 					await targetStateCache.setTargetApps([
 						{
 							appId: 2,
+							uuid: 'test-uuid2',
+							type: 'supervised',
 							commit: 'abcdef2',
 							name: 'test-app2',
 							source: apiEndpoint,
