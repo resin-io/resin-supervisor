@@ -41,8 +41,10 @@ const testTarget2 = {
 			RESIN_HOST_CONFIG_gpu_mem: '512',
 		},
 		apps: {
-			'1234': {
+			'test-uuid': {
 				name: 'superapp',
+				appId: 1234,
+				type: 'supervised',
 				commit: 'afafafa',
 				releaseId: 2,
 				services: {
@@ -104,11 +106,11 @@ const testTargetWithDefaults2 = {
 				services: [
 					_.merge(
 						{ appId: 1234, serviceId: 23, releaseId: 2 },
-						_.clone(testTarget2.local.apps['1234'].services['23']),
+						_.clone(testTarget2.local.apps['test-uuid'].services['23']),
 					),
 					_.merge(
 						{ appId: 1234, serviceId: 24, releaseId: 2 },
-						_.clone(testTarget2.local.apps['1234'].services['24']),
+						_.clone(testTarget2.local.apps['test-uuid'].services['24']),
 					),
 				],
 				volumes: {},

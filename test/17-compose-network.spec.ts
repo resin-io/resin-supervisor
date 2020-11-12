@@ -7,6 +7,7 @@ describe('compose/network', function () {
 			const network = Network.fromComposeObject(
 				'test',
 				123,
+				'test-uuid',
 				{
 					driver: 'bridge',
 					ipam: {
@@ -37,7 +38,9 @@ describe('compose/network', function () {
 				},
 				enableIPv6: false,
 				internal: false,
-				labels: {},
+				labels: {
+					'io.balena.app-uuid': 'test-uuid',
+				},
 				options: {},
 			});
 		});
@@ -46,6 +49,7 @@ describe('compose/network', function () {
 			const network = Network.fromComposeObject(
 				'test',
 				123,
+				'test-uuid',
 				{
 					ipam: {
 						config: [
@@ -64,7 +68,9 @@ describe('compose/network', function () {
 				driver: 'bridge',
 				enableIPv6: false,
 				internal: false,
-				labels: {},
+				labels: {
+					'io.balena.app-uuid': 'test-uuid',
+				},
 				options: {},
 				ipam: {
 					driver: 'default',
@@ -85,6 +91,7 @@ describe('compose/network', function () {
 			const network = Network.fromComposeObject(
 				'test',
 				123,
+				'test-uuid',
 				{
 					driver: 'bridge',
 					ipam: {
@@ -119,6 +126,7 @@ describe('compose/network', function () {
 				Internal: false,
 				Labels: {
 					'io.balena.supervised': 'true',
+					'io.balena.app-uuid': 'test-uuid',
 				},
 			});
 		}));

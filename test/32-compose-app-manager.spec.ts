@@ -175,8 +175,9 @@ describe('compose/application-manager', () => {
 					SUPERVISOR_PERSISTENT_LOGGING: 'false',
 				},
 				apps: {
-					'1': {
+					'test-uuid': {
 						appId: 1,
+						type: 'supervised',
 						name: 'userapp',
 						commit: 'aaaaaaa',
 						releaseId: 1,
@@ -192,8 +193,9 @@ describe('compose/application-manager', () => {
 						volumes: {},
 						networks: {},
 					},
-					'100': {
+					'test-uuid2': {
 						appId: 100,
+						type: 'supervised',
 						name: 'systemapp',
 						commit: 'bbbbbbb',
 						releaseId: 100,

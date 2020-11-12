@@ -90,7 +90,13 @@ export const initialized = (async () => {
 
 type ServiceInfo = Pick<
 	Service,
-	'imageName' | 'appId' | 'serviceId' | 'serviceName' | 'imageId' | 'releaseId'
+	| 'imageName'
+	| 'appId'
+	| 'serviceId'
+	| 'serviceName'
+	| 'imageId'
+	| 'releaseId'
+	| 'uuid'
 >;
 export function imageFromService(service: ServiceInfo): Image {
 	// We know these fields are defined because we create these images from target state

@@ -14,6 +14,8 @@ export interface DatabaseApp {
 	networks: string;
 	volumes: string;
 	source: string;
+	uuid: string;
+	type: string;
 }
 export type DatabaseApps = DatabaseApp[];
 
@@ -75,6 +77,12 @@ export async function setTargetApps(
 	targetState = undefined;
 
 	await Promise.all(
-		apps.map((app) => db.upsertModel('app', app, { appId: app.appId }, trx)),
+		apps.map((app) => {
+			if (app.uuid) {
+				db.upsertModel('app', app, { uuid: app.uuid }, trx);
+			} else {
+				db.upsertModel('app', app, { appId: app.appId }, trx);
+			}
+		}),
 	);
 }
