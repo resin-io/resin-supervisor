@@ -25,8 +25,8 @@ import * as imageManager from './images';
 import type { Image } from './images';
 import { getExecutors, CompositionStepT } from './composition-steps';
 import * as commitStore from './commit';
-
 import Service from './service';
+import * as hostExt from './host-extension';
 
 import { createV1Api } from '../device-api/v1';
 import { createV2Api } from '../device-api/v2';
@@ -187,13 +187,27 @@ export async function getRequiredSteps(
 		imageManager.getAvailable(),
 		getCurrentApps(),
 	]);
+
+	// First we check if we need to install any host extensions, as these should
+	// happen first
+	const hostExtensions = _.pickBy(targetApps, { type: 'hostapp extension' });
+	const extensionSteps = await hostExt.getRequiredSteps(
+		hostExtensions,
+		availableImages,
+		downloading,
+	);
+
+	if (extensionSteps.length !== 0) {
+		return extensionSteps;
+	}
+
 	const containerIdsByAppId = await getAppContainerIds(currentApps);
 
 	if (localMode) {
 		ignoreImages = localMode;
 	}
-	targetApps = _.pickBy(targetApps, { type: 'supervised' });
 
+	targetApps = _.pickBy(targetApps, { type: 'supervised' });
 	const currentAppIds = Object.keys(currentApps).map((i) => parseInt(i, 10));
 	const targetAppIds = Object.keys(targetApps).map((i) => parseInt(i, 10));
 
@@ -769,10 +783,13 @@ function saveAndRemoveImages(
 				}) ?? _.find(availableImages, { dockerImageId: svc.config.image }),
 		),
 	) as imageManager.Image[];
+
+	// console.log('target: ', JSON.stringify(target, null, 2));
 	const targetImages = _.flatMap(target, (app) =>
 		_.map(app.services, imageForService),
 	);
 
+	// console.log('targetImages', targetImages);
 	const availableAndUnused = _.filter(
 		availableImages,
 		(image) =>
