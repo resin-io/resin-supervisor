@@ -1,4 +1,25 @@
 - commits:
+    - subject: 'patch: bump mixpanel from 0.10.3 to 0.13.0'
+      hash: 18bdc09cbc9373f366d97881ff374c67ddb5df5b
+      body: >
+        Bumps [mixpanel](https://github.com/mixpanel/mixpanel-node) from 0.10.3
+        to 0.13.0.
+
+        - [Release notes](https://github.com/mixpanel/mixpanel-node/releases)
+
+        -
+        [Changelog](https://github.com/mixpanel/mixpanel-node/blob/master/history.md)
+
+        -
+        [Commits](https://github.com/mixpanel/mixpanel-node/compare/v0.10.3...v0.13.0)
+      footer:
+        Signed-off-by: 'dependabot[bot] <support@github.com>'
+        signed-off-by: 'dependabot[bot] <support@github.com>'
+      author: 'dependabot[bot]'
+      nested: []
+  version: 12.2.14
+  date: 2020-12-16T12:08:53.894Z
+- commits:
     - subject: Add dependabot configuration
       hash: 153655b523af94d8192f0e0eb5574c67fbf85008
       body: ''
