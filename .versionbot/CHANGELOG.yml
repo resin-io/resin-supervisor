@@ -1,4 +1,17 @@
 - commits:
+    - subject: 'build: allow building on balena build servers'
+      hash: 492d459b02c15345cc53d4ff82e08574fa28d0fb
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Matthew McGinn <matthew@balena.io>
+        signed-off-by: Matthew McGinn <matthew@balena.io>
+      author: Matthew McGinn
+      nested: []
+  version: 12.3.1
+  date: 2021-01-07T16:21:51.507Z
+- commits:
     - subject: Add support for `BALENA_HOST_SPLASH_IMAGE` config
       hash: 4aa8090a56f6ece4a3a0425a378ec438c38629df
       body: >
