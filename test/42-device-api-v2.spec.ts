@@ -1,5 +1,12 @@
 import { expect } from 'chai';
-import { stub, SinonStub, spy, SinonSpy } from 'sinon';
+import {
+	stub,
+	SinonStub,
+	spy,
+	SinonSpy,
+	useFakeTimers,
+	SinonFakeTimers,
+} from 'sinon';
 import * as supertest from 'supertest';
 import * as Bluebird from 'bluebird';
 
@@ -17,6 +24,7 @@ import * as targetStateCache from '../src/device-state/target-state-cache';
 import * as mockedDockerode from './lib/mocked-dockerode';
 import * as applicationManager from '../src/compose/application-manager';
 import * as logger from '../src/logger';
+import blink = require('../src/lib/blink');
 
 import { UpdatesLockedError } from '../src/lib/errors';
 
@@ -534,6 +542,44 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 					expect(applicationManagerSpy).to.have.been.calledOnce;
 				},
 			);
+		});
+	});
+
+	describe('POST /v2/blink', () => {
+		it('responds with code 200 and empty body', async () => {
+			await request
+				.post('/v2/blink')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.POST['/blink'].statusCode)
+				.then((response) => {
+					expect(response.body).to.deep.equal(
+						sampleResponses.V2.POST['/blink'].body,
+					);
+					expect(response.text).to.deep.equal(
+						sampleResponses.V2.POST['/blink'].text,
+					);
+				});
+		});
+
+		it('directs device to blink for 15000ms (hardcoded length)', async () => {
+			const blinkStartSpy: SinonSpy = spy(blink.pattern, 'start');
+			const blinkStopSpy: SinonSpy = spy(blink.pattern, 'stop');
+			const clock: SinonFakeTimers = useFakeTimers();
+
+			await request
+				.post('/v2/blink')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.then(() => {
+					expect(blinkStartSpy.callCount).to.equal(1);
+					clock.tick(15000);
+					expect(blinkStopSpy.callCount).to.equal(1);
+				});
+
+			blinkStartSpy.restore();
+			blinkStopSpy.restore();
+			clock.restore();
 		});
 	});
 

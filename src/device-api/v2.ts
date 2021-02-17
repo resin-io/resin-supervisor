@@ -32,6 +32,8 @@ import { checkInt, checkTruthy } from '../lib/validation';
 import { isVPNActive } from '../network';
 import { doPurge, doRestart, safeStateClone } from './common';
 import { AuthorizedRequest } from '../lib/api-keys';
+import blink = require('../lib/blink');
+import * as eventTracker from '../event-tracker';
 
 export function createV2Api(router: Router) {
 	const handleServiceAction = (
@@ -602,5 +604,12 @@ export function createV2Api(router: Router) {
 			journald.stdout!.unpipe();
 			res.end();
 		});
+	});
+
+	router.post('/v2/blink', (_req, res) => {
+		eventTracker.track('Device blink');
+		blink.pattern.start();
+		setTimeout(blink.pattern.stop, 15000);
+		return res.sendStatus(200);
 	});
 }

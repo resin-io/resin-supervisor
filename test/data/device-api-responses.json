@@ -208,6 +208,12 @@
         }
       }
     },
-    "POST": {}
+    "POST": {
+			"/blink": {
+				"statusCode": 200,
+				"body": {},
+				"text": "OK"
+			}
+		}
   }
 }
