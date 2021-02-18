@@ -38,6 +38,7 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 	);
 
 	let loggerStub: SinonStub;
+	let healthCheckStubs: SinonStub[];
 
 	before(async () => {
 		await apiBinder.initialized;
@@ -65,6 +66,12 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 		// Stub logs for all API methods
 		loggerStub = stub(logger, 'attach');
 		loggerStub.resolves();
+
+		// Stub healthchecks for /healthy endpoint
+		healthCheckStubs = [
+			stub(apiBinder, 'healthcheck'),
+			stub(deviceState, 'healthcheck'),
+		];
 	});
 
 	after(async () => {
@@ -81,6 +88,7 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 		imagesMock.restore();
 		applicationManagerSpy.restore();
 		loggerStub.restore();
+		healthCheckStubs.forEach((hc) => hc.restore());
 	});
 
 	afterEach(() => {
@@ -646,6 +654,43 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 				});
 
 			reportStateSpy.restore();
+		});
+	});
+
+	describe('GET /v2/healthy', () => {
+		it('returns OK because all checks pass', async () => {
+			// Make all healthChecks pass
+			healthCheckStubs.forEach((hc) => hc.resolves(true));
+			await request
+				.get('/v2/healthy')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.GET['/healthy'].statusCode)
+				.then((response) => {
+					expect(response.body).to.deep.equal(
+						sampleResponses.V2.GET['/healthy'].body,
+					);
+					expect(response.text).to.deep.equal(
+						sampleResponses.V2.GET['/healthy'].text,
+					);
+				});
+		});
+
+		it('Fails because some checks did not pass', async () => {
+			healthCheckStubs.forEach((hc) => hc.resolves(false));
+			await request
+				.get('/v2/healthy')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.GET['/healthy [2]'].statusCode)
+				.then((response) => {
+					expect(response.body).to.deep.equal(
+						sampleResponses.V2.GET['/healthy [2]'].body,
+					);
+					expect(response.text).to.deep.equal(
+						sampleResponses.V2.GET['/healthy [2]'].text,
+					);
+				});
 		});
 	});
 

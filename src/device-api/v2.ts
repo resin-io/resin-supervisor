@@ -652,4 +652,23 @@ export function createV2Api(router: Router) {
 			}
 		},
 	);
+
+	router.get('/v2/healthy', async (_req, res) => {
+		try {
+			const isAllHealthy = await Promise.all([
+				apiBinder.healthcheck(),
+				deviceState.healthcheck(),
+			]);
+
+			if (!isAllHealthy.every((isHealthy) => isHealthy)) {
+				log.error('Healthcheck failed');
+				return res.status(500).send('Unhealthy');
+			}
+
+			return res.sendStatus(200);
+		} catch (_e) {
+			log.error('Healthcheck failed');
+			return res.status(500).send('Unhealthy');
+		}
+	});
 }
