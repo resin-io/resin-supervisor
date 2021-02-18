@@ -583,5 +583,71 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 		});
 	});
 
+	describe('POST /v2/regenerate-api-key', () => {
+		it('returns a valid new API key', async () => {
+			const refreshKeySpy: SinonSpy = spy(apiKeys, 'refreshKey');
+
+			let newKey: string = '';
+
+			await request
+				.post('/v2/regenerate-api-key')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.POST['/regenerate-api-key'].statusCode)
+				.then((response) => {
+					expect(response.body).to.deep.equal(
+						sampleResponses.V2.POST['/regenerate-api-key'].body,
+					);
+					expect(response.text).to.equal(apiKeys.cloudApiKey);
+					newKey = response.text;
+					expect(refreshKeySpy.callCount).to.equal(1);
+				});
+
+			// Ensure persistence with future calls
+			await request
+				.post('/v2/blink')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${newKey}`)
+				.expect(sampleResponses.V2.POST['/blink'].statusCode);
+
+			refreshKeySpy.restore();
+		});
+
+		it('expires old API key after generating new key', async () => {
+			const oldKey: string = apiKeys.cloudApiKey;
+
+			await request
+				.post('/v2/regenerate-api-key')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${oldKey}`)
+				.expect(sampleResponses.V2.POST['/regenerate-api-key'].statusCode);
+
+			await request
+				.post('/v2/blink')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${oldKey}`)
+				.expect(401);
+		});
+
+		it('communicates the new API key to balena API', async () => {
+			const reportStateSpy: SinonSpy = spy(deviceState, 'reportCurrentState');
+
+			await request
+				.post('/v2/regenerate-api-key')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.then(() => {
+					expect(reportStateSpy.callCount).to.equal(1);
+					// Cloud key has changed at this point so we assert that the call to
+					// report state was made with the new key
+					expect(reportStateSpy.args[0][0]).to.deep.equal({
+						api_secret: apiKeys.cloudApiKey,
+					});
+				});
+
+			reportStateSpy.restore();
+		});
+	});
+
 	// TODO: add tests for rest of V2 endpoints
 });

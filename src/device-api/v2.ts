@@ -31,13 +31,13 @@ import supervisorVersion = require('../lib/supervisor-version');
 import { checkInt, checkTruthy } from '../lib/validation';
 import { isVPNActive } from '../network';
 import { doPurge, doRestart, safeStateClone } from './common';
-import { AuthorizedRequest } from '../lib/api-keys';
+import * as apiKeys from '../lib/api-keys';
 import blink = require('../lib/blink');
 import * as eventTracker from '../event-tracker';
 
 export function createV2Api(router: Router) {
 	const handleServiceAction = (
-		req: AuthorizedRequest,
+		req: apiKeys.AuthorizedRequest,
 		res: Response,
 		next: NextFunction,
 		action: CompositionStepAction,
@@ -115,7 +115,7 @@ export function createV2Api(router: Router) {
 
 	router.post(
 		'/v2/applications/:appId/purge',
-		(req: AuthorizedRequest, res: Response, next: NextFunction) => {
+		(req: apiKeys.AuthorizedRequest, res: Response, next: NextFunction) => {
 			const { force } = req.body;
 			const appId = checkInt(req.params.appId);
 			if (!appId) {
@@ -159,7 +159,7 @@ export function createV2Api(router: Router) {
 
 	router.post(
 		'/v2/applications/:appId/restart',
-		(req: AuthorizedRequest, res: Response, next: NextFunction) => {
+		(req: apiKeys.AuthorizedRequest, res: Response, next: NextFunction) => {
 			const { force } = req.body;
 			const appId = checkInt(req.params.appId);
 			if (!appId) {
@@ -189,7 +189,11 @@ export function createV2Api(router: Router) {
 	// TODO: Support dependent applications when this feature is complete
 	router.get(
 		'/v2/applications/state',
-		async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
+		async (
+			req: apiKeys.AuthorizedRequest,
+			res: Response,
+			next: NextFunction,
+		) => {
 			// It's kinda hacky to access the services and db via the application manager
 			// maybe refactor this code
 			Bluebird.join(
@@ -273,7 +277,7 @@ export function createV2Api(router: Router) {
 
 	router.get(
 		'/v2/applications/:appId/state',
-		async (req: AuthorizedRequest, res: Response) => {
+		async (req: apiKeys.AuthorizedRequest, res: Response) => {
 			// Check application ID provided is valid
 			const appId = checkInt(req.params.appId);
 			if (!appId) {
@@ -420,7 +424,7 @@ export function createV2Api(router: Router) {
 		});
 	});
 
-	router.get('/v2/containerId', async (req: AuthorizedRequest, res) => {
+	router.get('/v2/containerId', async (req: apiKeys.AuthorizedRequest, res) => {
 		const services = (await serviceManager.getAll()).filter((service) =>
 			req.auth.isScoped({ apps: [service.appId] }),
 		);
@@ -453,71 +457,74 @@ export function createV2Api(router: Router) {
 		}
 	});
 
-	router.get('/v2/state/status', async (req: AuthorizedRequest, res) => {
-		const appIds: number[] = [];
-		const pending = deviceState.isApplyInProgress();
-		const containerStates = (await serviceManager.getAll())
-			.filter((service) => req.auth.isScoped({ apps: [service.appId] }))
-			.map((svc) => {
-				appIds.push(svc.appId);
-				return _.pick(
-					svc,
-					'status',
-					'serviceName',
-					'appId',
-					'imageId',
-					'serviceId',
-					'containerId',
-					'createdAt',
-				);
+	router.get(
+		'/v2/state/status',
+		async (req: apiKeys.AuthorizedRequest, res) => {
+			const appIds: number[] = [];
+			const pending = deviceState.isApplyInProgress();
+			const containerStates = (await serviceManager.getAll())
+				.filter((service) => req.auth.isScoped({ apps: [service.appId] }))
+				.map((svc) => {
+					appIds.push(svc.appId);
+					return _.pick(
+						svc,
+						'status',
+						'serviceName',
+						'appId',
+						'imageId',
+						'serviceId',
+						'containerId',
+						'createdAt',
+					);
+				});
+
+			let downloadProgressTotal = 0;
+			let downloads = 0;
+			const imagesStates = (await images.getStatus())
+				.filter((img) => req.auth.isScoped({ apps: [img.appId] }))
+				.map((img) => {
+					appIds.push(img.appId);
+					if (img.downloadProgress != null) {
+						downloadProgressTotal += img.downloadProgress;
+						downloads += 1;
+					}
+					return _.pick(
+						img,
+						'name',
+						'appId',
+						'serviceName',
+						'imageId',
+						'dockerImageId',
+						'status',
+						'downloadProgress',
+					);
+				});
+
+			let overallDownloadProgress: number | null = null;
+			if (downloads > 0) {
+				overallDownloadProgress = downloadProgressTotal / downloads;
+			}
+
+			// This endpoint does not support multi-app but the device might be running multiple apps
+			// We must return information for only 1 application so use the first one in the list
+			const appId = appIds[0];
+			// Get the commit for this application
+			const commit = await commitStore.getCommitForApp(appId);
+			// Filter containers by this application
+			const appContainers = containerStates.filter((c) => c.appId === appId);
+			// Filter images by this application
+			const appImages = imagesStates.filter((i) => i.appId === appId);
+
+			return res.status(200).send({
+				status: 'success',
+				appState: pending ? 'applying' : 'applied',
+				overallDownloadProgress,
+				containers: appContainers,
+				images: appImages,
+				release: commit,
 			});
-
-		let downloadProgressTotal = 0;
-		let downloads = 0;
-		const imagesStates = (await images.getStatus())
-			.filter((img) => req.auth.isScoped({ apps: [img.appId] }))
-			.map((img) => {
-				appIds.push(img.appId);
-				if (img.downloadProgress != null) {
-					downloadProgressTotal += img.downloadProgress;
-					downloads += 1;
-				}
-				return _.pick(
-					img,
-					'name',
-					'appId',
-					'serviceName',
-					'imageId',
-					'dockerImageId',
-					'status',
-					'downloadProgress',
-				);
-			});
-
-		let overallDownloadProgress: number | null = null;
-		if (downloads > 0) {
-			overallDownloadProgress = downloadProgressTotal / downloads;
-		}
-
-		// This endpoint does not support multi-app but the device might be running multiple apps
-		// We must return information for only 1 application so use the first one in the list
-		const appId = appIds[0];
-		// Get the commit for this application
-		const commit = await commitStore.getCommitForApp(appId);
-		// Filter containers by this application
-		const appContainers = containerStates.filter((c) => c.appId === appId);
-		// Filter images by this application
-		const appImages = imagesStates.filter((i) => i.appId === appId);
-
-		return res.status(200).send({
-			status: 'success',
-			appState: pending ? 'applying' : 'applied',
-			overallDownloadProgress,
-			containers: appContainers,
-			images: appImages,
-			release: commit,
-		});
-	});
+		},
+	);
 
 	router.get('/v2/device/name', async (_req, res) => {
 		const deviceName = await config.get('name');
@@ -557,26 +564,29 @@ export function createV2Api(router: Router) {
 		});
 	});
 
-	router.get('/v2/cleanup-volumes', async (req: AuthorizedRequest, res) => {
-		const targetState = await applicationManager.getTargetApps();
-		const referencedVolumes: string[] = [];
-		_.each(targetState, (app, appId) => {
-			// if this app isn't in scope of the request, do not cleanup it's volumes
-			if (!req.auth.isScoped({ apps: [parseInt(appId, 10)] })) {
-				return;
-			}
+	router.get(
+		'/v2/cleanup-volumes',
+		async (req: apiKeys.AuthorizedRequest, res) => {
+			const targetState = await applicationManager.getTargetApps();
+			const referencedVolumes: string[] = [];
+			_.each(targetState, (app, appId) => {
+				// if this app isn't in scope of the request, do not cleanup it's volumes
+				if (!req.auth.isScoped({ apps: [parseInt(appId, 10)] })) {
+					return;
+				}
 
-			_.each(app.volumes, (_volume, volumeName) => {
-				referencedVolumes.push(
-					Volume.generateDockerName(parseInt(appId, 10), volumeName),
-				);
+				_.each(app.volumes, (_volume, volumeName) => {
+					referencedVolumes.push(
+						Volume.generateDockerName(parseInt(appId, 10), volumeName),
+					);
+				});
 			});
-		});
-		await volumeManager.removeOrphanedVolumes(referencedVolumes);
-		res.json({
-			status: 'success',
-		});
-	});
+			await volumeManager.removeOrphanedVolumes(referencedVolumes);
+			res.json({
+				status: 'success',
+			});
+		},
+	);
 
 	router.post('/v2/journal-logs', (req, res) => {
 		const all = checkTruthy(req.body.all);
@@ -612,4 +622,34 @@ export function createV2Api(router: Router) {
 		setTimeout(blink.pattern.stop, 15000);
 		return res.sendStatus(200);
 	});
+
+	// Expires the supervisor's API key and generates a new one.
+	// It also communicates the new key to the balena API.
+	router.post(
+		'/v2/regenerate-api-key',
+		async (req: apiKeys.AuthorizedRequest, res) => {
+			try {
+				await deviceState.initialized;
+				await apiKeys.initialized;
+
+				// check if we're updating the cloud API key
+				const shouldUpdateCloudKey = req.auth.apiKey === apiKeys.cloudApiKey;
+
+				// regenerate key
+				const newKey = await apiKeys.refreshKey(req.auth.apiKey);
+
+				if (shouldUpdateCloudKey) {
+					// report new key to cloud API
+					deviceState.reportCurrentState({
+						api_secret: apiKeys.cloudApiKey,
+					});
+				}
+
+				res.status(200).send(newKey);
+			} catch (err) {
+				console.error(err);
+				res.status(500).send(err?.message ?? err ?? 'Unknown error');
+			}
+		},
+	);
 }

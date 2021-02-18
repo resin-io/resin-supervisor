@@ -213,6 +213,10 @@
 				"statusCode": 200,
 				"body": {},
 				"text": "OK"
+			},
+			"/regenerate-api-key": {
+				"statusCode": 200,
+				"body": {}
 			}
 		}
   }
