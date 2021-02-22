@@ -237,6 +237,16 @@
         "statusCode": 423,
         "body": {},
         "text": "Updates locked"
+      },
+      "/shutdown [202]": {
+        "statusCode": 202,
+        "body": {},
+        "text": "OK"
+      },
+      "/shutdown [423]": {
+        "statusCode": 423,
+        "body": {},
+        "text": "Updates locked"
       }
     }
   }

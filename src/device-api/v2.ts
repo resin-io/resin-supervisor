@@ -695,4 +695,8 @@ export function createV2Api(router: Router) {
 	});
 
 	router.post('/v2/reboot', (req, res) => rebootOrShutdown(req, res, 'reboot'));
+
+	router.post('/v2/shutdown', (req, res) =>
+		rebootOrShutdown(req, res, 'shutdown'),
+	);
 }

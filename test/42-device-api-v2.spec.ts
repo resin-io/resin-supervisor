@@ -864,5 +864,172 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 		});
 	});
 
+	describe('POST /v2/shutdown', () => {
+		let shutdownMock: SinonStub;
+		let stopAllSpy: SinonSpy;
+
+		before(() => {
+			shutdownMock = stub(dbus, 'shutdown').resolves((() => void 0) as any);
+			stopAllSpy = spy(applicationManager, 'stopAll');
+
+			// Mock a multi-container app
+			serviceManagerMock.resolves([
+				mockedAPI.mockService({ appId: 12345 }),
+				mockedAPI.mockService({ appId: 54321 }),
+			]);
+			imagesMock.resolves([
+				mockedAPI.mockImage({ appId: 12345 }),
+				mockedAPI.mockImage({ appId: 54321 }),
+			]);
+		});
+
+		after(() => {
+			shutdownMock.restore();
+		});
+
+		afterEach(() => {
+			shutdownMock.resetHistory();
+		});
+
+		it('should return 202 and shutdown if no locks are set', async () => {
+			await request
+				.post('/v2/shutdown')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.POST['/shutdown [202]'].statusCode)
+				.then((response) => {
+					expect(response.body).to.deep.equal(
+						sampleResponses.V2.POST['/shutdown [202]'].body,
+					);
+					expect(response.text).to.equal(
+						sampleResponses.V2.POST['/shutdown [202]'].text,
+					);
+					expect(shutdownMock).to.have.been.calledOnce;
+				});
+		});
+
+		it('should return 500 for errors that are not related to update locks', async () => {
+			stub(deviceState, 'executeStepAction').throws(() => {
+				return new Error('Test error');
+			});
+
+			await request
+				.post('/v2/shutdown')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(500)
+				.then((response) => {
+					expect(response.text).to.equal('Test error');
+				});
+
+			(deviceState.executeStepAction as SinonStub).restore();
+		});
+
+		it('should attempt to stop services first before shutdown', async () => {
+			await request
+				.post('/v2/shutdown')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.POST['/shutdown [202]'].statusCode)
+				.then(() => {
+					expect(stopAllSpy).to.have.been.called;
+					expect(shutdownMock).to.have.been.calledOnce;
+					expect(stopAllSpy).to.have.been.calledBefore(shutdownMock);
+				});
+
+			stopAllSpy.restore();
+		});
+
+		describe('POST /v2/shutdown -- Updates locked', () => {
+			let updateLockStub: SinonStub;
+
+			before(() => {
+				updateLockStub = stub(updateLock, 'lock').callsFake((__, opts, fn) => {
+					if (opts.force) {
+						return Bluebird.resolve(fn());
+					}
+					throw new UpdatesLockedError('Updates locked');
+				});
+			});
+
+			after(() => {
+				updateLockStub.restore();
+			});
+
+			it('should return 423 and reject the shutdown if no locks are set', async () => {
+				stub(config, 'get').withArgs('lockOverride').resolves(false);
+				// If calling config.get with other args, pass through to non-stubbed method
+				(config.get as SinonStub).callThrough();
+
+				await request
+					.post('/v2/shutdown')
+					.set('Accept', 'application/json')
+					.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+					.expect(sampleResponses.V2.POST['/shutdown [423]'].statusCode)
+					.then((response) => {
+						expect(response.body).to.deep.equal(
+							sampleResponses.V2.POST['/shutdown [423]'].body,
+						);
+						expect(response.text).to.equal(
+							sampleResponses.V2.POST['/shutdown [423]'].text,
+						);
+						expect(updateLock.lock).to.have.been.called;
+						expect(shutdownMock).to.not.have.been.called;
+					});
+
+				(config.get as SinonStub).restore();
+			});
+
+			it('should return 202 and shutdown if force is set to true', async () => {
+				stub(config, 'get').withArgs('lockOverride').resolves(false);
+				// If calling config.get with other args, pass through to non-stubbed method
+				(config.get as SinonStub).callThrough();
+
+				await request
+					.post('/v2/shutdown')
+					.send({ force: true })
+					.set('Accept', 'application/json')
+					.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+					.expect(sampleResponses.V2.POST['/shutdown [202]'].statusCode)
+					.then((response) => {
+						expect(response.body).to.deep.equal(
+							sampleResponses.V2.POST['/shutdown [202]'].body,
+						);
+						expect(response.text).to.equal(
+							sampleResponses.V2.POST['/shutdown [202]'].text,
+						);
+						expect(updateLock.lock).to.have.been.called;
+						expect(shutdownMock).to.have.been.calledOnce;
+					});
+
+				(config.get as SinonStub).restore();
+			});
+
+			it('should return 202 and shutdown if lock override config is set to true', async () => {
+				stub(config, 'get').withArgs('lockOverride').resolves(true);
+				// If calling config.get with other args, pass through to non-stubbed method
+				(config.get as SinonStub).callThrough();
+
+				await request
+					.post('/v2/shutdown')
+					.set('Accept', 'application/json')
+					.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+					.expect(sampleResponses.V2.POST['/shutdown [202]'].statusCode)
+					.then((response) => {
+						expect(response.body).to.deep.equal(
+							sampleResponses.V2.POST['/shutdown [202]'].body,
+						);
+						expect(response.text).to.equal(
+							sampleResponses.V2.POST['/shutdown [202]'].text,
+						);
+						expect(updateLock.lock).to.have.been.called;
+						expect(shutdownMock).to.have.been.calledOnce;
+					});
+
+				(config.get as SinonStub).restore();
+			});
+		});
+	});
+
 	// TODO: add tests for rest of V2 endpoints
 });
