@@ -25,6 +25,7 @@ import * as mockedDockerode from './lib/mocked-dockerode';
 import * as applicationManager from '../src/compose/application-manager';
 import * as logger from '../src/logger';
 import blink = require('../src/lib/blink');
+import * as dbus from '../src/lib/dbus';
 
 import { UpdatesLockedError } from '../src/lib/errors';
 
@@ -691,6 +692,175 @@ describe('SupervisorAPI [V2 Endpoints]', () => {
 						sampleResponses.V2.GET['/healthy [2]'].text,
 					);
 				});
+		});
+	});
+
+	describe('POST /v2/reboot', () => {
+		let rebootMock: SinonStub;
+		let stopAllSpy: SinonSpy;
+
+		before(() => {
+			rebootMock = stub(dbus, 'reboot').resolves((() => void 0) as any);
+			stopAllSpy = spy(applicationManager, 'stopAll');
+
+			// Mock a multi-container app
+			serviceManagerMock.resolves([
+				mockedAPI.mockService({ appId: 12345 }),
+				mockedAPI.mockService({ appId: 54321 }),
+			]);
+			imagesMock.resolves([
+				mockedAPI.mockImage({ appId: 12345 }),
+				mockedAPI.mockImage({ appId: 54321 }),
+			]);
+		});
+
+		after(() => {
+			rebootMock.restore();
+		});
+
+		afterEach(() => {
+			rebootMock.resetHistory();
+		});
+
+		it('should return 202 and reboot if no locks are set', async () => {
+			await request
+				.post('/v2/reboot')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.POST['/reboot [202]'].statusCode)
+				.then((response) => {
+					expect(response.body).to.deep.equal(
+						sampleResponses.V2.POST['/reboot [202]'].body,
+					);
+					expect(response.text).to.equal(
+						sampleResponses.V2.POST['/reboot [202]'].text,
+					);
+					expect(rebootMock).to.have.been.calledOnce;
+				});
+		});
+
+		it('should return 500 for server errors that are not related to update locks', async () => {
+			stub(deviceState, 'executeStepAction').throws(() => {
+				return new Error('Test error');
+			});
+
+			await request
+				.post('/v2/reboot')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(500)
+				.then((response) => {
+					expect(response.text).to.equal('Test error');
+				});
+
+			(deviceState.executeStepAction as SinonStub).restore();
+		});
+
+		it('should attempt to stop services first before reboot', async () => {
+			await request
+				.post('/v2/reboot')
+				.set('Accept', 'application/json')
+				.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+				.expect(sampleResponses.V2.POST['/reboot [202]'].statusCode)
+				.then(() => {
+					expect(stopAllSpy).to.have.been.called;
+					expect(rebootMock).to.have.been.calledOnce;
+					expect(stopAllSpy).to.have.been.calledBefore(rebootMock);
+				});
+
+			stopAllSpy.restore();
+		});
+
+		describe('POST /v2/reboot - Updates locked', () => {
+			let updateLockStub: SinonStub;
+
+			before(() => {
+				updateLockStub = stub(updateLock, 'lock').callsFake((__, opts, fn) => {
+					if (opts.force) {
+						return Bluebird.resolve(fn());
+					}
+					throw new UpdatesLockedError('Updates locked');
+				});
+			});
+
+			after(() => {
+				updateLockStub.restore();
+			});
+
+			it('should return 423 and reject the reboot if no locks are set', async () => {
+				stub(config, 'get').withArgs('lockOverride').resolves(false);
+				// If calling config.get with other args, pass through to non-stubbed method
+				(config.get as SinonStub).callThrough();
+
+				await request
+					.post('/v2/reboot')
+					.set('Accept', 'application/json')
+					.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+					.expect(sampleResponses.V2.POST['/reboot [423]'].statusCode)
+					.then((response) => {
+						expect(response.body).to.deep.equal(
+							sampleResponses.V2.POST['/reboot [423]'].body,
+						);
+						expect(response.text).to.equal(
+							sampleResponses.V2.POST['/reboot [423]'].text,
+						);
+						expect(updateLock.lock).to.be.called;
+						expect(rebootMock).to.not.have.been.called;
+					});
+
+				(config.get as SinonStub).restore();
+			});
+
+			it('should return 202 and reboot if force is set to true', async () => {
+				stub(config, 'get').withArgs('lockOverride').resolves(false);
+				// If calling config.get with other args, pass through to non-stubbed method
+				(config.get as SinonStub).callThrough();
+
+				await request
+					.post('/v2/reboot')
+					.send({
+						force: true,
+					})
+					.set('Accept', 'application/json')
+					.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+					.expect(sampleResponses.V2.POST['/reboot [202]'].statusCode)
+					.then((response) => {
+						expect(response.body).to.deep.equal(
+							sampleResponses.V2.POST['/reboot [202]'].body,
+						);
+						expect(response.text).to.equal(
+							sampleResponses.V2.POST['/reboot [202]'].text,
+						);
+						expect(updateLock.lock).to.be.called;
+						expect(rebootMock).to.have.been.calledOnce;
+					});
+
+				(config.get as SinonStub).restore();
+			});
+
+			it('should return 202 and reboot if lock override config is set to true', async () => {
+				stub(config, 'get').withArgs('lockOverride').resolves(true);
+				// If calling config.get with other args, pass through to non-stubbed method
+				(config.get as SinonStub).callThrough();
+
+				await request
+					.post('/v2/reboot')
+					.set('Accept', 'application/json')
+					.set('Authorization', `Bearer ${apiKeys.cloudApiKey}`)
+					.expect(sampleResponses.V2.POST['/reboot [202]'].statusCode)
+					.then((response) => {
+						expect(response.body).to.deep.equal(
+							sampleResponses.V2.POST['/reboot [202]'].body,
+						);
+						expect(response.text).to.equal(
+							sampleResponses.V2.POST['/reboot [202]'].text,
+						);
+						expect(updateLock.lock).to.have.been.called;
+						expect(rebootMock).to.have.been.calledOnce;
+					});
+
+				(config.get as SinonStub).restore();
+			});
 		});
 	});
 

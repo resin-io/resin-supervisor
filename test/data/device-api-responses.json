@@ -219,15 +219,25 @@
       }
     },
     "POST": {
-			"/blink": {
-				"statusCode": 200,
-				"body": {},
-				"text": "OK"
-			},
-			"/regenerate-api-key": {
-				"statusCode": 200,
-				"body": {}
-			}
-		}
+      "/blink": {
+        "statusCode": 200,
+        "body": {},
+        "text": "OK"
+      },
+      "/regenerate-api-key": {
+        "statusCode": 200,
+        "body": {}
+      },
+      "/reboot [202]": {
+        "statusCode": 202,
+        "body": {},
+        "text": "OK"
+      },
+      "/reboot [423]": {
+        "statusCode": 423,
+        "body": {},
+        "text": "Updates locked"
+      }
+    }
   }
 }

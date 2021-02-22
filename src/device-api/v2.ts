@@ -1,5 +1,5 @@
 import * as Bluebird from 'bluebird';
-import { NextFunction, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import * as _ from 'lodash';
 
 import * as deviceState from '../device-state';
@@ -34,6 +34,7 @@ import { doPurge, doRestart, safeStateClone } from './common';
 import * as apiKeys from '../lib/api-keys';
 import blink = require('../lib/blink');
 import * as eventTracker from '../event-tracker';
+import { UpdatesLockedError } from '../lib/errors';
 
 export function createV2Api(router: Router) {
 	const handleServiceAction = (
@@ -112,6 +113,27 @@ export function createV2Api(router: Router) {
 
 	const createServiceActionHandler = (action: string) =>
 		_.partial(handleServiceAction, _, _, _, action);
+
+	const rebootOrShutdown = async (
+		req: Request,
+		res: Response,
+		action: deviceState.DeviceStateStepTarget,
+	) => {
+		const override = await config.get('lockOverride');
+		const force = checkTruthy(req.body.force) || override;
+		try {
+			const response = await deviceState.executeStepAction(
+				{ action },
+				{ force },
+			);
+			// Follow the v2 standard of not sending responses with the Data-Error JSON
+			// pattern, as in v1. This way, the v2 responses are more uniform
+			res.status(202).send((response as { Data: string; Error: null }).Data);
+		} catch (e) {
+			const status = e instanceof UpdatesLockedError ? 423 : 500;
+			res.status(status).send(e?.message ?? e ?? 'Unknown error');
+		}
+	};
 
 	router.post(
 		'/v2/applications/:appId/purge',
@@ -671,4 +693,6 @@ export function createV2Api(router: Router) {
 			return res.status(500).send('Unhealthy');
 		}
 	});
+
+	router.post('/v2/reboot', (req, res) => rebootOrShutdown(req, res, 'reboot'));
 }

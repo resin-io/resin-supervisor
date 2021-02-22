@@ -259,7 +259,7 @@ export const removeAllListeners: typeof events['removeAllListeners'] = events.re
 	events,
 );
 
-type DeviceStateStepTarget = 'reboot' | 'shutdown' | 'noop';
+export type DeviceStateStepTarget = 'reboot' | 'shutdown' | 'noop';
 
 type PossibleStepTargets = CompositionStepAction | DeviceStateStepTarget;
 type DeviceStateStep<T extends PossibleStepTargets> =
