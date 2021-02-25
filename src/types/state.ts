@@ -51,7 +51,9 @@ export interface TargetState {
 		name: string;
 		config: EnvVarObject;
 		apps: {
-			[appId: string]: {
+			[uuid: string]: {
+				appId: number;
+				type: string;
 				name: string;
 				commit: string;
 				releaseId: number;

@@ -49,6 +49,7 @@ export class Service {
 	public serviceId: number;
 	public imageName: string | null;
 	public containerId: string | null;
+	public uuid: string | null;
 
 	public dependsOn: string[] | null;
 
@@ -133,6 +134,8 @@ export class Service {
 		delete appConfig.dependsOn;
 		service.createdAt = appConfig.createdAt;
 		delete appConfig.createdAt;
+		service.uuid = appConfig.uuid;
+		delete appConfig.uuid;
 
 		delete appConfig.contract;
 
@@ -271,6 +274,7 @@ export class Service {
 				service.appId || 0,
 				service.serviceId || 0,
 				service.serviceName || '',
+				service.uuid || undefined,
 			),
 		);
 
@@ -592,6 +596,7 @@ export class Service {
 		svc.appId = appId;
 		svc.serviceName = svc.config.labels['io.balena.service-name'];
 		svc.serviceId = parseInt(svc.config.labels['io.balena.service-id'], 10);
+		svc.uuid = svc.config.labels['io.balena.app-uuid'];
 		if (Number.isNaN(svc.serviceId)) {
 			throw new InternalInconsistencyError(
 				'Attempt to build Service class from container with malformed labels',
@@ -1048,13 +1053,19 @@ export class Service {
 		appId: number,
 		serviceId: number,
 		serviceName: string,
+		uuid?: string,
 	): { [labelName: string]: string } {
-		let newLabels = _.defaults(labels, {
-			'io.balena.supervised': 'true',
-			'io.balena.app-id': appId.toString(),
-			'io.balena.service-id': serviceId.toString(),
-			'io.balena.service-name': serviceName,
-		});
+		let newLabels = {
+			...labels,
+			...{
+				'io.balena.supervised': 'true',
+				'io.balena.app-id': appId.toString(),
+				'io.balena.service-id': serviceId.toString(),
+				'io.balena.service-name': serviceName,
+			},
+			// Set a uuid label if we have one
+			...(uuid != null ? { 'io.balena.app-uuid': uuid } : {}),
+		};
 
 		const imageLabels = _.get(imageInfo, 'Config.Labels', {});
 		newLabels = _.defaults(newLabels, imageLabels);
