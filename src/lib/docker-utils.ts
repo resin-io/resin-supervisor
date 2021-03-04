@@ -3,7 +3,7 @@ import * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
 import * as memoizee from 'memoizee';
 
-import { applyDelta, OutOfSyncError } from 'docker-delta';
+import { OutOfSyncError } from 'docker-delta';
 import DockerToolbelt = require('docker-toolbelt');
 
 import { SchemaReturn } from '../config/schema-type';
@@ -23,12 +23,6 @@ export type DeltaFetchOptions = FetchOptions & {
 	deltaSourceId: string;
 	deltaSource: string;
 };
-
-interface RsyncApplyOptions {
-	timeout: number;
-	maxRetries: number;
-	retryInterval: number;
-}
 
 // TODO: Correctly export this from docker-toolbelt
 interface ImageNameParts {
@@ -72,17 +66,10 @@ export async function fetchDeltaWithProgress(
 	onProgress: ProgressCallback,
 	serviceName: string,
 ): Promise<string> {
-	const deltaSourceId =
-		deltaOpts.deltaSourceId != null
-			? deltaOpts.deltaSourceId
-			: deltaOpts.deltaSource;
-
-	const timeout = deltaOpts.deltaApplyTimeout;
-
 	const logFn = (str: string) =>
 		log.debug(`delta([${serviceName}] ${deltaOpts.deltaSource}): ${str}`);
 
-	if (!_.includes([2, 3], deltaOpts.deltaVersion)) {
+	if (deltaOpts.deltaVersion !== 3) {
 		logFn(
 			`Unsupported delta version: ${deltaOpts.deltaVersion}. Falling back to regular pull`,
 		);
@@ -102,7 +89,7 @@ export async function fetchDeltaWithProgress(
 	}
 
 	// Since the supevisor never calls this function with a source anymore,
-	// this should never happen, but w ehandle it anyway
+	// this should never happen, but we handle it anyway
 	if (deltaOpts.deltaSource == null) {
 		logFn('Falling back to regular pull due to lack of a delta source');
 		return fetchImageWithProgress(imgDest, deltaOpts, onProgress);
@@ -138,34 +125,6 @@ export async function fetchDeltaWithProgress(
 	let id: string;
 	try {
 		switch (deltaOpts.deltaVersion) {
-			case 2:
-				if (
-					!(
-						res.statusCode >= 300 &&
-						res.statusCode < 400 &&
-						res.headers['location'] != null
-					)
-				) {
-					throw new Error(
-						`Got ${res.statusCode} when requesting an image from delta server.`,
-					);
-				}
-				const deltaUrl = res.headers['location'];
-				const deltaSrc = deltaSourceId;
-				const resumeOpts = {
-					timeout: deltaOpts.deltaRequestTimeout,
-					maxRetries: deltaOpts.deltaRetryCount,
-					retryInterval: deltaOpts.deltaRetryInterval,
-				};
-				id = await applyRsyncDelta(
-					deltaSrc,
-					deltaUrl,
-					timeout,
-					resumeOpts,
-					onProgress,
-					logFn,
-				);
-				break;
 			case 3:
 				if (res.statusCode !== 200) {
 					throw new Error(
@@ -247,50 +206,6 @@ export async function getNetworkGateway(networkName: string): Promise<string> {
 	throw new InvalidNetGatewayError(
 		`Cannot determine network gateway for ${networkName}`,
 	);
-}
-
-function applyRsyncDelta(
-	imgSrc: string,
-	deltaUrl: string,
-	applyTimeout: number,
-	opts: RsyncApplyOptions,
-	onProgress: ProgressCallback,
-	logFn: (str: string) => void,
-): Promise<string> {
-	logFn('Applying rsync delta...');
-
-	return new Promise(async (resolve, reject) => {
-		const resumable = await request.getResumableRequest();
-		const req = resumable(Object.assign({ url: deltaUrl }, opts));
-		req
-			.on('progress', onProgress)
-			.on('retry', onProgress)
-			.on('error', reject)
-			.on('response', (res) => {
-				if (res.statusCode !== 200) {
-					reject(
-						new Error(
-							`Got ${res.statusCode} when requesting delta from storage.`,
-						),
-					);
-				} else if (parseInt(res.headers['content-length'] || '0', 10) === 0) {
-					reject(new Error('Invalid delta URL'));
-				} else {
-					const deltaStream = applyDelta(imgSrc, {
-						log: logFn,
-						timeout: applyTimeout,
-					});
-					res
-						.pipe(deltaStream)
-						.on('id', (id) => resolve(`sha256:${id}`))
-						.on('error', (err) => {
-							logFn(`Delta stream emitted error: ${err}`);
-							req.abort();
-							reject(err);
-						});
-				}
-			});
-	});
 }
 
 async function applyBalenaDelta(
