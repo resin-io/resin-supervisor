@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add message to refer to v2 endpoints
+      hash: eedf6711c6a86719a8b7b0287c2204a66deef104
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Vipul Gupta (@vipulgupta2048) <vipul@balena.io>
+        signed-off-by: Vipul Gupta (@vipulgupta2048) <vipul@balena.io>
+      author: Vipul Gupta (@vipulgupta2048)
+      nested: []
+  version: 12.4.4
+  date: 2021-03-08T10:07:12.631Z
+- commits:
     - subject: Refactor journalctl monitor to only spawn new process on exit
       hash: 898b72c7f706ef9482b76b5acfa0ecd6d3ae6c99
       body: ''
