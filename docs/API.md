@@ -371,7 +371,7 @@ $ curl -X POST --header "Content-Type:application/json" \
 Temporarily stops a user application container. A reboot or supervisor restart will cause the container to start again.
 The container is not removed with this endpoint.
 
-This is only supported on single-container devices, and will return 400 on devices running multiple containers.
+This is only supported on single-container devices, and will return 400 on devices running multiple containers. Refer to v2 endpoints for running the query on multiple containers.
 
 When successful, responds with 200 and the Id of the stopped container.
 
@@ -413,7 +413,7 @@ $ curl -X POST --header "Content-Type:application/json" \
 
 Starts a user application container, usually after it has been stopped with `/v1/stop`.
 
-This is only supported on single-container devices, and will return 400 on devices running multiple containers.
+This is only supported on single-container devices, and will return 400 on devices running multiple containers. Refer to v2 endpoints for running the query on multiple containers.
 
 When successful, responds with 200 and the Id of the started container.
 
@@ -460,7 +460,7 @@ The app is a JSON object that contains the following:
 
 The appId must be specified in the URL.
 
-This is only supported on single-container devices, and will return 400 on devices running multiple containers.
+This is only supported on single-container devices, and will return 400 on devices running multiple containers. Refer to v2 endpoints for running the query on multiple containers.
 
 #### Examples:
 From an application container:
