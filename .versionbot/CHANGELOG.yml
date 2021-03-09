@@ -1,4 +1,19 @@
 - commits:
+    - subject: Support app uuids and types coming from the target state
+      hash: ab681ddb8a9e1fd62825e1e83d0c1e77281b3e35
+      body: |
+        We store the uuid on the individual docker components so that when
+        building a current state, we can match them with the target state.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Cameron Diver <cameron@balena.io>
+        signed-off-by: Cameron Diver <cameron@balena.io>
+      author: Cameron Diver
+      nested: []
+  version: 12.5.0
+  date: 2021-03-09T14:57:47.368Z
+- commits:
     - subject: Refactor journalctl monitor to only spawn new process on exit
       hash: 898b72c7f706ef9482b76b5acfa0ecd6d3ae6c99
       body: ''
