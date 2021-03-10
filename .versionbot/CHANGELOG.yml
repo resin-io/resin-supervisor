@@ -1,22 +1,28 @@
 - commits:
-    - subject: Bump elliptic from 6.5.3 to 6.5.4
-      hash: f013f04e4d0ab502f87bde263ce3ef6217a84640
+    - subject: Remove rsync delta (v2) support
+      hash: bc3f88f3ac3d3a555a719954ed0c602de203fb5a
       body: >
-        Bumps [elliptic](https://github.com/indutny/elliptic) from 6.5.3 to
-        6.5.4.
+        Remove resumable-request, docker-delta dependencies. Docker-delta is
+        only used for v2 rsync deltas
 
-        - [Release notes](https://github.com/indutny/elliptic/releases)
+        and is not needed for v3. resumable-request is not used elsewhere
+        either. Remove isV2Delta function,
 
-        - [Commits](https://github.com/indutny/elliptic/compare/v6.5.3...v6.5.4)
+        as this PR is designed to be merged with balenaOS 3. v3's supervisor
+        will not allow old v2 deltas,
+
+        so at that point, the dependency removals will be safe to merge.
       footer:
-        Change-type: patch
-        change-type: patch
-        Signed-off-by: 'dependabot[bot] <support@github.com>'
-        signed-off-by: 'dependabot[bot] <support@github.com>'
-      author: 'dependabot[bot]'
+        Change-type: minor
+        change-type: minor
+        Connects-to: '#1602'
+        connects-to: '#1602'
+        Signed-off-by: Christina Wang <christina@balena.io>
+        signed-off-by: Christina Wang <christina@balena.io>
+      author: Christina Wang
       nested: []
-  version: 12.4.4
-  date: 2021-03-09T18:05:32.658Z
+  version: 12.5.0
+  date: 2021-03-10T07:00:04.183Z
 - commits:
     - subject: Refactor journalctl monitor to only spawn new process on exit
       hash: 898b72c7f706ef9482b76b5acfa0ecd6d3ae6c99
