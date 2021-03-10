@@ -1,4 +1,29 @@
 - commits:
+    - subject: Remove rsync delta (v2) support
+      hash: bc3f88f3ac3d3a555a719954ed0c602de203fb5a
+      body: >
+        Remove resumable-request, docker-delta dependencies. Docker-delta is
+        only used for v2 rsync deltas
+
+        and is not needed for v3. resumable-request is not used elsewhere
+        either. Remove isV2Delta function,
+
+        as this PR is designed to be merged with balenaOS 3. v3's supervisor
+        will not allow old v2 deltas,
+
+        so at that point, the dependency removals will be safe to merge.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Connects-to: '#1602'
+        connects-to: '#1602'
+        Signed-off-by: Christina Wang <christina@balena.io>
+        signed-off-by: Christina Wang <christina@balena.io>
+      author: Christina Wang
+      nested: []
+  version: 12.5.0
+  date: 2021-03-10T07:02:43.933Z
+- commits:
     - subject: Refactor journalctl monitor to only spawn new process on exit
       hash: 898b72c7f706ef9482b76b5acfa0ecd6d3ae6c99
       body: ''
