@@ -1,4 +1,19 @@
 - commits:
+    - subject: Infer legacy Volumes that do not have the supervised label
+      hash: 90c7c68b42886f9728d053f90462656c85cc2ea8
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+        Closes: '#1604'
+        closes: '#1604'
+        Signed-off-by: Miguel Casqueira <miguel@balena.io>
+        signed-off-by: Miguel Casqueira <miguel@balena.io>
+      author: Miguel Casqueira
+      nested: []
+  version: 12.4.4
+  date: 2021-03-11T23:42:54.460Z
+- commits:
     - subject: Refactor journalctl monitor to only spawn new process on exit
       hash: 898b72c7f706ef9482b76b5acfa0ecd6d3ae6c99
       body: ''
