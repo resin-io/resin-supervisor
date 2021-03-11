@@ -1,22 +1,18 @@
 - commits:
-    - subject: Bump elliptic from 6.5.3 to 6.5.4
-      hash: f013f04e4d0ab502f87bde263ce3ef6217a84640
-      body: >
-        Bumps [elliptic](https://github.com/indutny/elliptic) from 6.5.3 to
-        6.5.4.
-
-        - [Release notes](https://github.com/indutny/elliptic/releases)
-
-        - [Commits](https://github.com/indutny/elliptic/compare/v6.5.3...v6.5.4)
+    - subject: Infer legacy Volumes that do not have the supervised label
+      hash: 90c7c68b42886f9728d053f90462656c85cc2ea8
+      body: ''
       footer:
         Change-type: patch
         change-type: patch
-        Signed-off-by: 'dependabot[bot] <support@github.com>'
-        signed-off-by: 'dependabot[bot] <support@github.com>'
-      author: 'dependabot[bot]'
+        Closes: '#1604'
+        closes: '#1604'
+        Signed-off-by: Miguel Casqueira <miguel@balena.io>
+        signed-off-by: Miguel Casqueira <miguel@balena.io>
+      author: Miguel Casqueira
       nested: []
   version: 12.4.4
-  date: 2021-03-09T18:05:32.658Z
+  date: 2021-03-11T23:40:06.019Z
 - commits:
     - subject: Refactor journalctl monitor to only spawn new process on exit
       hash: 898b72c7f706ef9482b76b5acfa0ecd6d3ae6c99
